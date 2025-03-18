@@ -78,21 +78,21 @@ Access the website at http://localhost/watchnet
 
 ### File Structure
 
-watchnet/
-│-- assets/               # CSS, JavaScript, images
-│-- includes/             # Configuration and helper files
-│-- uploads/              # Product images
-│-- index.php             # Homepage
-│-- admin_panel.php       # Admin Dashboard
-│-- manage_products.php   # Product management page
-│-- add_product.php       # Add new product
-│-- edit_product.php      # Edit existing product
-│-- view_product.php      # Product details
-│-- manage_users.php      # User management
-│-- login.php             # User authentication
-│-- signup.php            # User registration
-│-- logout.php            # Logout functionality
-│-- README.md             # Project documentation
+### watchnet/
+### │-- assets/               # CSS, JavaScript, images
+### │-- includes/             # Configuration and helper files
+### │-- uploads/              # Product images
+### │-- index.php             # Homepage
+### │-- admin_panel.php       # Admin Dashboard
+### │-- manage_products.php   # Product management page
+### │-- add_product.php       # Add new product
+### │-- edit_product.php      # Edit existing product
+### │-- view_product.php      # Product details
+### │-- manage_users.php      # User management
+### │-- login.php             # User authentication
+### │-- signup.php            # User registration
+### │-- logout.php            # Logout functionality
+### │-- README.md             # Project documentation
 
 ### Future Enhancements
 
