@@ -1,0 +1,20 @@
+# Ignore environment and configuration files
+.env
+config.php
+
+# Ignore cache and logs
+/cache/
+/logs/
+
+# Ignore vendor folder (if using Composer)
+/vendor/
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore system files
+*.log
+*.bak
+
+token
