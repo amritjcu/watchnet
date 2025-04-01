@@ -1,4 +1,6 @@
 <?php
+// ini_set('display_errors', 1);
+// error_reporting(E_ALL);
 // Start session to check user login status
 session_start();
 
@@ -22,6 +24,90 @@ if (isset($_SESSION['user_id'])) {
 // Fetch featured products where is_featured = 'yes'
 $featureProductQuery  = "SELECT id, name, description, price, image FROM products ";
 $featureProductResult = $conn->query($featureProductQuery);
+
+
+
+// Initialize query variables
+$min_price = isset($_GET['min_price']) && !empty($_GET['min_price']) ? $_GET['min_price'] : 0;
+$max_price = isset($_GET['max_price']) && !empty($_GET['max_price']) ? $_GET['max_price'] : PHP_INT_MAX;
+$sort = isset($_GET['sort']) ? $_GET['sort'] : 'name_asc'; // Default sort by name ascending
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1; // Get the current page or default to 1
+$limit = 12; // Number of products per page
+$offset = ($page - 1) * $limit; // Calculate offset for pagination
+
+// Build the base query
+$query = "SELECT * FROM products WHERE 1=1";
+
+// Add price filter conditions
+$params = [];
+$type = ''; // This will hold the parameter types for bind_param
+
+
+if ($min_price !== null) {
+    $min_price = filter_var($min_price, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+    $query .= " AND price >= ?";
+    $params[] = $min_price;
+    $type .= 'd'; // 'd' for double (float)
+}
+
+if ($max_price !== null) {
+    $max_price = filter_var($max_price, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+    $query .= " AND price <= ?";
+    $params[] = $max_price;
+    $type .= 'd'; // 'd' for double (float)
+}
+
+// Add sorting condition
+switch ($sort) {
+    case 'name_asc':
+        $query .= " ORDER BY name ASC";
+        break;
+    case 'name_desc':
+        $query .= " ORDER BY name DESC";
+        break;
+    case 'price_asc':
+        $query .= " ORDER BY price ASC";
+        break;
+    case 'price_desc':
+        $query .= " ORDER BY price DESC";
+        break;
+    default:
+        $query .= " ORDER BY name ASC"; // Default to sorting by name ascending
+}
+
+// Add LIMIT and OFFSET directly to the query
+$query .= " LIMIT $limit OFFSET $offset";
+
+// // Debugging output the query to check
+// echo "Query: " . $query . "<br>";
+
+
+// Prepare the statement
+$stmt = $conn->prepare($query);
+
+// If there are parameters to bind, bind them
+if (!empty($params)) {
+    $stmt->bind_param($type, ...$params); // Use variable-length argument list to bind parameters
+}
+
+// Execute the statement
+$stmt->execute();
+$result = $stmt->get_result();
+
+// Check if products are found
+if ($result->num_rows > 0) {
+    $products = $result->fetch_all(MYSQLI_ASSOC);
+} else {
+    $products = [];
+    echo "No products found matching the filters.<br>";  // Debugging message
+}
+
+// Fetch total products for pagination
+$totalQuery = "SELECT COUNT(*) as total FROM products WHERE 1=1";
+$totalResult = $conn->query($totalQuery);
+$totalRow = $totalResult->fetch_assoc();
+$total_products = $totalRow['total'];
+$total_pages = ceil($total_products / $limit);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -126,30 +212,32 @@ $featureProductResult = $conn->query($featureProductQuery);
 
         <!-- Filter and Sort Form -->
         <form method="GET" class="mb-4">
-            <div class="row">
-                <div class="col-md-3">
-                    <input type="number" name="min_price" class="form-control" placeholder="Min Price">
-                </div>
-                <div class="col-md-3">
-                    <input type="number" name="max_price" class="form-control" placeholder="Max Price">
-                </div>
-                <div class="col-md-3">
-                    <select name="sort" class="form-select">
-                        <option value="name_asc">Name (A-Z)</option>
-                        <option value="name_desc">Name (Z-A)</option>
-                        <option value="price_asc">Price (Low to High)</option>
-                        <option value="price_desc">Price (High to Low)</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary w-100">Apply</button>
-                </div>
-            </div>
-        </form>
+      <div class="row">
+      <div class="col-md-3">
+    <input type="number" name="min_price" class="form-control" placeholder="Min Price" 
+           value="<?php echo isset($min_price) && $min_price > 0 ? htmlspecialchars($min_price) : ''; ?>">
+</div>
+<div class="col-md-3">
+    <input type="number" name="max_price" class="form-control" placeholder="Max Price" 
+           value="<?php echo isset($max_price) && $max_price < PHP_INT_MAX ? htmlspecialchars($max_price) : ''; ?>">
+</div>
+        <div class="col-md-3">
+          <select name="sort" class="form-select">
+            <option value="name_asc" <?php echo $sort == 'name_asc' ? 'selected' : ''; ?>>Name (A-Z)</option>
+            <option value="name_desc" <?php echo $sort == 'name_desc' ? 'selected' : ''; ?>>Name (Z-A)</option>
+            <option value="price_asc" <?php echo $sort == 'price_asc' ? 'selected' : ''; ?>>Price (Low to High)</option>
+            <option value="price_desc" <?php echo $sort == 'price_desc' ? 'selected' : ''; ?>>Price (High to Low)</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-primary w-100">Apply</button>
+        </div>
+      </div>
+    </form>
 
         <div class="row">
             <!-- Repeat this block for each product -->
-            <?php while ($product = $featureProductResult->fetch_assoc()): ?>
+            <?php foreach ($products as $product): ?>
             <div class="col-md-4 mb-4">
                 <div class="card">
                     <img src="uploads/<?php echo htmlspecialchars($product['image']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($product['name']); ?>">
@@ -166,7 +254,7 @@ $featureProductResult = $conn->query($featureProductQuery);
                 </div>
                
             </div>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
             <!-- End product block -->
         </div>
 

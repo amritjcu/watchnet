@@ -104,7 +104,7 @@
         <h2 class="text-center mb-4">About Us</h2>
         <div class="row">
             <div class="col-md-6">
-                <img src="assets/about-us.jpg" class="img-fluid rounded" alt="About Us">
+                <img src="assets/images/about-us.jpg" class="img-fluid rounded" alt="About Us">
             </div>
             <div class="col-md-6">
                 <h3>Welcome to My Shop!</h3>
