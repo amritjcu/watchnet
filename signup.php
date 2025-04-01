@@ -1,6 +1,6 @@
 <?php
-    // ini_set('display_errors', 1);
-    // error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+    error_reporting(E_ALL);
 
     // Include the config file to connect to the database
     include "includes/config.php";
@@ -11,7 +11,7 @@
         $username = mysqli_real_escape_string($conn, $_POST['username']);
         $email = mysqli_real_escape_string($conn, $_POST['email']);
         $password = $_POST['password'];
-        $role = $_POST['role'];
+        $role = 'user';
     
         // Check if any field is empty
         if (empty($username) || empty($email) || empty($password) || empty($role)) {
@@ -162,12 +162,12 @@ p a:hover {
                     <div class="textbox">
                         <input type="password" name="password" placeholder="Password" required>
                     </div>
-                    <div class="textbox">
+                    <!-- <div class="textbox">
                         <select name="role" required>
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
                         </select>
-                    </div>
+                    </div> -->
                     <button type="submit" class="btn">Signup</button>
                     <p>Already have an account? <a href="login.php">Login here</a></p>
                 </form>
