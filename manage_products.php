@@ -14,8 +14,35 @@
         exit();
     }
 
+    if (isset($_GET['message'])) {
+        // Display success message
+        echo "<div class='success-message'>" . htmlspecialchars($_GET['message']) . "</div>";
+    }
+
     // Fetch all products from the database
     $query  = "SELECT * FROM products";
+    $result = $conn->query($query);
+
+    // Set the number of products per page
+    $products_per_page = 10;
+
+    // Get the current page from the URL (default to page 1)
+    $current_page = isset($_GET['page']) ? $_GET['page'] : 1;
+
+    // Calculate the offset for the SQL query
+    $offset = ($current_page - 1) * $products_per_page;
+
+    // Fetch the total number of products
+    $total_query = "SELECT COUNT(*) AS total FROM products";
+    $total_result = $conn->query($total_query);
+    $total_row = $total_result->fetch_assoc();
+    $total_products = $total_row['total'];
+
+    // Calculate the total number of pages
+    $total_pages = ceil($total_products / $products_per_page);
+
+    // Fetch the products for the current page
+    $query = "SELECT * FROM products LIMIT $products_per_page OFFSET $offset";
     $result = $conn->query($query);
 ?>
 
@@ -167,6 +194,16 @@
 .breadcrumb span {
     color: #666;
 }
+.pagination {
+  display: inline-block;
+}
+
+.pagination a {
+  color: black;
+  float: left;
+  padding: 8px 16px;
+  text-decoration: none;
+}
 
     </style>
 </head>
@@ -189,6 +226,15 @@
 <main>
     <div class="container">
         <h2>Manage Products</h2>
+        <?php
+        if (isset($_GET['message'])) {
+            // Display success message with a close button
+            echo "<div class='success-message'>
+                    <span>" . htmlspecialchars($_GET['message']) . "</span>
+                    <button class='close-btn' onclick='closeMessage()'>×</button>
+                  </div>";
+        }
+    ?>
 
         <!-- Breadcrumb Navigation -->
 <nav class="breadcrumb">
@@ -235,12 +281,32 @@
                 <?php }?>
             </tbody>
         </table>
-    </div>
-</main>
+        <!-- Pagination Controls -->
+    <div class="pagination">
+            <!-- Previous Page -->
+            <a href="?page=<?php echo ($current_page > 1) ? $current_page - 1 : 1; ?>" class="<?php echo ($current_page == 1) ? 'disabled' : ''; ?>">Previous</a>
 
+            <!-- Page Number Links -->
+            <?php for ($page = 1; $page <= $total_pages; $page++) { ?>
+                <a href="?page=<?php echo $page; ?>" class="<?php echo ($current_page == $page) ? 'active' : ''; ?>"><?php echo $page; ?></a>
+            <?php } ?>
+
+            <!-- Next Page -->
+            <a href="?page=<?php echo ($current_page < $total_pages) ? $current_page + 1 : $total_pages; ?>" class="<?php echo ($current_page == $total_pages) ? 'disabled' : ''; ?>">Next</a>
+        </div>
+
+    </div>
+                </div>
+                </main>
 <footer>
     <p>&copy; 2025 Watchnet. All rights reserved.</p>
 </footer>
-
+<script>
+// JavaScript function to close the message when the close button is clicked
+function closeMessage() {
+    const messageBox = document.querySelector('.success-message');
+    messageBox.classList.add('hide-message');
+}
+</script>
 </body>
 </html>

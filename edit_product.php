@@ -191,67 +191,79 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <h2>Edit Product</h2>
 
     <form action="edit_product.php?id=<?php echo $product['id']; ?>" method="POST" enctype="multipart/form-data">
-        
-        <div class="form-group">
-            <label for="name">Product Name</label>
-            <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($product['name']); ?>" required>
-        </div>
+    
+    <!-- Product Name -->
+    <div class="form-group">
+        <label for="name">Product Name</label>
+        <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($product['name']); ?>" required>
+    </div>
 
-        <div class="form-group">
-            <label for="brand">Brand</label>
-            <input type="text" id="brand" name="brand" value="<?php echo htmlspecialchars($product['brand']); ?>" required>
-        </div>
+    <!-- Product Brand -->
+    <div class="form-group">
+        <label for="brand">Brand</label>
+        <input type="text" id="brand" name="brand" value="<?php echo htmlspecialchars($product['brand']); ?>" required>
+    </div>
 
-        <div class="form-group">
-            <label for="description">Description</label>
-            <textarea id="description" name="description" required><?php echo htmlspecialchars($product['description']); ?></textarea>
-        </div>
+    <!-- Product Description -->
+    <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" required><?php echo htmlspecialchars($product['description']); ?></textarea>
+    </div>
 
-        <div class="form-group">
-            <label for="price">Price ($)</label>
-            <input type="number" id="price" name="price" step="0.01" value="<?php echo htmlspecialchars($product['price']); ?>" required>
-        </div>
+    <!-- Product Price -->
+    <div class="form-group">
+        <label for="price">Price ($)</label>
+        <input type="number" id="price" name="price" step="0.01" value="<?php echo htmlspecialchars($product['price']); ?>" min="0" required>
+    </div>
 
-        <div class="form-group">
-            <label for="gender">Gender</label>
-            <select id="gender" name="gender" required>
-                <option value="Male" <?php echo ($product['gender'] == 'Male') ? 'selected' : ''; ?>>Male</option>
-                <option value="Female" <?php echo ($product['gender'] == 'Female') ? 'selected' : ''; ?>>Female</option>
-                <option value="Unisex" <?php echo ($product['gender'] == 'Unisex') ? 'selected' : ''; ?>>Unisex</option>
-            </select>
-        </div>
+    <!-- Gender -->
+    <div class="form-group">
+        <label for="gender">Gender</label>
+        <select id="gender" name="gender" required>
+            <option value="Male" <?php echo ($product['gender'] == 'Male') ? 'selected' : ''; ?>>Male</option>
+            <option value="Female" <?php echo ($product['gender'] == 'Female') ? 'selected' : ''; ?>>Female</option>
+            <option value="Unisex" <?php echo ($product['gender'] == 'Unisex') ? 'selected' : ''; ?>>Unisex</option>
+        </select>
+    </div>
 
-        <div class="form-group">
-            <label for="color">Color</label>
-            <input type="text" id="color" name="color" value="<?php echo htmlspecialchars($product['color']); ?>" required>
-        </div>
+    <!-- Color -->
+    <div class="form-group">
+        <label for="color">Color</label>
+        <input type="text" id="color" name="color" value="<?php echo htmlspecialchars($product['color']); ?>" required>
+    </div>
 
-        <div class="form-group">
-            <label for="average_rating">Average Rating</label>
-            <input type="number" id="average_rating" name="average_rating" step="0.1" max="5" value="<?php echo htmlspecialchars($product['average_rating']); ?>" required>
-        </div>
+    <!-- Average Rating -->
+    <div class="form-group">
+        <label for="average_rating">Average Rating</label>
+        <input type="number" id="average_rating" name="average_rating" step="0.1" max="5" value="<?php echo htmlspecialchars($product['average_rating']); ?>" required>
+    </div>
 
-        <div class="form-group">
-            <label for="stock">Stock Quantity</label>
-            <input type="number" id="stock" name="stock" value="<?php echo htmlspecialchars($product['stock']); ?>" required>
-        </div>
+    <!-- Stock Quantity -->
+    <div class="form-group">
+        <label for="stock">Stock Quantity</label>
+        <input type="number" id="stock" name="stock" value="<?php echo htmlspecialchars($product['stock']); ?>" min="0" required>
+    </div>
 
-        <div class="form-group">
-            <label for="image">Product Image</label>
-            <input type="file" id="image" name="image">
-        </div>
+    <!-- Product Image Upload -->
+    <div class="form-group">
+        <label for="image">Product Image</label>
+        <input type="file" id="image" name="image">
+    </div>
 
-        <?php if (!empty($product['image'])): ?>
-        <div class="current-image">
-            <p>Current Image:</p>
-            <img src="uploads/<?php echo htmlspecialchars($product['image']); ?>" alt="Product Image">
-        </div>
-        <?php endif; ?>
+    <!-- Display Current Image -->
+    <?php if (!empty($product['image'])): ?>
+    <div class="current-image">
+        <p>Current Image:</p>
+        <img src="uploads/<?php echo htmlspecialchars($product['image']); ?>" alt="Product Image">
+    </div>
+    <?php endif; ?>
 
-        <div class="form-group">
-            <button type="submit" class="button">Update Product</button>
-        </div>
-    </form>
+    <!-- Submit Button -->
+    <div class="form-group">
+        <button type="submit" class="button">Update Product</button>
+    </div>
+</form>
+
 </div>
 
 </body>

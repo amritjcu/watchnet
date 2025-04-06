@@ -1,73 +1,157 @@
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-// Start session to check if user is logged in and is an admin
-session_start();
+    ini_set('display_errors', 1);
+    error_reporting(E_ALL);
+    // Start session to check if user is logged in and is an admin
+    session_start();
 
-// Include the config file for database connection
-include "includes/config.php";
+    // Include the config file for database connection
+    include "includes/config.php";
 
-// Check if the user is logged in and is an admin
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-    // Redirect to the login page if the user is not an admin
-    header("Location: login.php");
-    exit();
-}
+    if (! $conn) {
+        die("Database connection failed: " . mysqli_connect_error());
+    }
 
-// Process the form submission when it is posted
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Get form data
-    $name = $_POST['name'];
-    $brand = $_POST['brand'];
-    $price = $_POST['price'];
-    $gender = $_POST['gender'];
-    $color = $_POST['color'];
-    $description = $_POST['description'];
-    $average_rating = $_POST['average_rating'];
-    $stock = $_POST['stock'];
+    // Check if the user is logged in and is an admin
+    if (! isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin' || $_SESSION['role'] != 'superuser') {
+        // Redirect to the login page if the user is not an admin
+        header("Location: login.php");
+        exit();
+    }
 
-    // Image upload handling
-    if (isset($_FILES['image'])) {
-        $image = $_FILES['image'];
-        $image_name = $image['name'];
-        $image_tmp_name = $image['tmp_name'];
-        $image_size = $image['size'];
-        $image_error = $image['error'];
-        
-        // Check for image errors
-        if ($image_error === 0) {
+    // Process the form submission when it is posted
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $errors = [];
+
+        // Sanitize & validate inputs
+        $name           = trim($_POST["name"]);
+        $brand          = trim($_POST["brand"]);
+        $price          = $_POST["price"];
+        $stock          = $_POST["stock"];
+        $rating         = $_POST["average_rating"];
+        $color          = trim($_POST["color"]);
+        $gender         = $_POST["gender"];
+        $description    = trim($_POST["description"]);
+        $is_banner      = strtolower($_POST['is_banner']);
+        $is_new_arrival = strtolower($_POST['is_new_arrival']);
+        $is_featured    = strtolower($_POST['is_featured']);
+        // Ensure price is a valid decimal (check with regex)
+        if (! is_numeric($price) || $price < 0 || $price > 100000) {
+            $errors[] = "Price must be a valid decimal between 0 and 100,000.";
+        } else {
+                                                                // Ensure price has 2 decimal places
+            $price = number_format((float) $price, 2, '.', ''); // Format the price to two decimals
+        }
+        // Image upload handling
+        $image = '';
+        if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
+            $image          = $_FILES['image'];
+            $image_name     = $image['name'];
+            $image_tmp_name = $image['tmp_name'];
+            $image_size     = $image['size'];
+            $image_error    = $image['error'];
+
             // Get image extension and validate the type
-            $image_ext = pathinfo($image_name, PATHINFO_EXTENSION);
+            $image_ext   = pathinfo($image_name, PATHINFO_EXTENSION);
             $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
-            
+
             if (in_array(strtolower($image_ext), $allowed_ext)) {
                 // Generate a unique name for the image to avoid conflicts
-                $image_new_name = uniqid('', true) . "." . $image_ext;
+                $image_new_name    = uniqid('', true) . "." . $image_ext;
                 $image_destination = 'uploads/' . $image_new_name;
-                
+
                 // Move image to the target directory
                 if (move_uploaded_file($image_tmp_name, $image_destination)) {
-                    // Insert the product into the database
-                    $query = "INSERT INTO products (name, brand, description, price, gender, color, average_rating, image, stock, created_at) 
-                              VALUES ('$name', '$brand', '$description', '$price', '$gender', '$color', '$average_rating', '$image_new_name', '$stock', NOW())";
-                    if ($conn->query($query)) {
-                        // Redirect back to the product management page
-                        header("Location: manage_products.php");
-                        exit();
-                    } else {
-                        echo "<p>Error adding product. Please try again later.</p>";
-                    }
+                    // Successfully uploaded image
+                    $image = $image_new_name;
                 } else {
-                    echo "<p>Error uploading the image.</p>";
+                    $errors[] = "Error uploading image.";
                 }
             } else {
-                echo "<p>Invalid image type. Only JPG, JPEG, PNG, GIF files are allowed.</p>";
+                $errors[] = "Invalid image type. Only JPG, JPEG, PNG, and GIF are allowed.";
             }
         } else {
-            echo "<p>There was an error uploading the image.</p>";
+            $errors[] = "Product image is required.";
+        }
+
+        // Validate product name (allows letters, numbers, and spaces)
+        if (! preg_match("/^[a-zA-Z0-9\s]+$/", $name)) {
+            $errors[] = "Product Name can only contain letters, numbers, and spaces.";
+        }
+
+        // Validate brand (only letters and spaces allowed)
+        if (! preg_match("/^[a-zA-Z\s]+$/", $brand)) {
+            $errors[] = "Brand should contain only letters and spaces.";
+        }
+
+        // Validate numeric values
+        if (! is_numeric($price) || $price <= 0) {
+            $errors[] = "Price must be a valid positive number.";
+        }
+        if (! is_numeric($stock) || $stock < 0) {
+            $errors[] = "Stock must be a valid number (zero or more).";
+        }
+
+        // Validate rating
+        if ($rating < 1 || $rating > 5) {
+            $errors[] = "Average Rating must be between 1 and 5.";
+        }
+
+        // Validate color
+        if (empty($color)) {
+            $errors[] = "Please enter the product color.";
+        }
+
+        // Validate gender
+        if ($gender !== "Male" && $gender !== "Female") {
+            $errors[] = "Invalid gender selection.";
+        }
+
+        // Validate description
+        if (strlen($description) < 10) {
+            $errors[] = "Description must be at least 10 characters long.";
+        }
+
+        // Display errors or process data
+        if (! empty($errors)) {
+            echo "<div style='color: red;'><ul><li>" . implode("</li><li>", $errors) . "</li></ul></div>";
+            include "product_form.html"; // Reload the form with errors
+        } else {
+            // Process the form data (insert into the database)
+            $stmt = $conn->prepare("INSERT INTO products
+            (name, brand, description, image, price, gender, color, average_rating, stock, is_banner, is_new_arrival, is_featured)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+            // Bind parameters to prevent SQL injection
+            $stmt->bind_param(
+                "ssssdssdisss",
+                $name,
+                $brand,
+                $description,
+                $image,
+                $price,
+                $gender,
+                $color,
+                $rating,
+                $stock,
+                $is_banner,
+                $is_new_arrival,
+                $is_featured
+            );
+
+            // Execute query
+            if ($stmt->execute()) {
+                // Redirect to manage_products.php with a success message
+                header("Location: manage_products.php?message=Product added successfully!");
+            } else {
+                echo "<div style='color: red;'>Error adding product: " . $stmt->error . "</div>";
+            }
+
+            // Close the statement and the database connection
+            $stmt->close();
+            $conn->close();
         }
     }
-}
+
 ?>
 
 <!DOCTYPE html>
@@ -261,66 +345,175 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </nav>
 
         <!-- Form to Add Product -->
-        <form action="add_product.php" method="POST" enctype="multipart/form-data" class="product-form">
-            <div class="form-group">
-                <label for="name">Product Name</label>
-                <input type="text" id="name" name="name" placeholder="Enter product name" required>
-            </div>
+        <div id="error-messages" style="display: none; color: red; font-weight: bold;"></div>
 
-            <div class="form-group">
-                <label for="brand">Brand</label>
-                <input type="text" id="brand" name="brand" placeholder="Enter product brand" required>
-            </div>
+<form action="add_product.php" method="POST" enctype="multipart/form-data" class="product-form">
+    <div class="form-group">
+        <label for="name">Product Name</label>
+        <input type="text" id="name" name="name" placeholder="Enter product name" required>
+    </div>
 
-            <div class="form-group">
-                <label for="price">Price ($)</label>
-                <input type="number" id="price" name="price" step="0.01" placeholder="Enter price" required>
-            </div>
+    <div class="form-group">
+        <label for="brand">Brand</label>
+        <input type="text" id="brand" name="brand" placeholder="Enter product brand" required>
+    </div>
 
-            <div class="form-group">
-                <label for="gender">Gender</label>
-                <select id="gender" name="gender" required>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Unisex">Unisex</option>
-                </select>
-            </div>
+    <div class="form-group">
+        <label for="price">Price ($)</label>
+        <input type="number" id="price" name="price" step="0.01" min="0" placeholder="Enter price" required>
+    </div>
 
-            <div class="form-group">
-                <label for="color">Color</label>
-                <input type="text" id="color" name="color" placeholder="Enter product color" required>
-            </div>
+    <div class="form-group">
+        <label for="stock">Stock</label>
+        <input type="number" id="stock" name="stock" placeholder="Enter stock quantity" required>
+    </div>
 
-            <div class="form-group">
-                <label for="description">Description</label>
-                <textarea id="description" name="description" placeholder="Enter product description" required></textarea>
-            </div>
+    <div class="form-group">
+        <label for="average_rating">Average Rating</label>
+        <input type="number" id="average_rating" name="average_rating" step="0.1" min="1" max="5" placeholder="Enter rating (1-5)" required>
+    </div>
 
-            <div class="form-group">
-                <label for="average_rating">Average Rating</label>
-                <input type="number" id="average_rating" name="average_rating" step="0.1" min="1" max="5" placeholder="Enter rating (1-5)" required>
-            </div>
+    <div class="form-group">
+        <label for="color">Color</label>
+        <input type="text" id="color" name="color" placeholder="Enter product color" required>
+    </div>
 
-            <div class="form-group">
-                <label for="image">Product Image</label>
-                <input type="file" id="image" name="image" accept="image/*" required>
-            </div>
+    <div class="form-group">
+        <label for="gender">Gender</label>
+        <select id="gender" name="gender" required>
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+        </select>
+    </div>
 
-            <div class="form-group">
-                <label for="stock">Stock</label>
-                <input type="number" id="stock" name="stock" placeholder="Enter stock quantity" required>
-            </div>
+    <div class="form-group">
+        <label for="image">Product Image</label>
+        <input type="file" id="image" name="image" accept="image/*" required>
+    </div>
 
-            <div class="form-group">
-                <button type="submit" class="button">Add Product</button>
-            </div>
-        </form>
+    <div class="form-group">
+    <label for="description">Description</label>
+    <textarea id="description" name="description" placeholder="Enter product description" required></textarea>
+</div>
+
+    <div class="form-group">
+        <label for="is_banner">Is Banner</label>
+        <select id="is_banner" name="is_banner" required>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="is_new_arrival">Is New Arrival</label>
+        <select id="is_new_arrival" name="is_new_arrival" required>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="is_featured">Is Featured</label>
+        <select id="is_featured" name="is_featured" required>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <button type="submit" class="button">Add Product</button>
+    </div>
+</form>
+
     </div>
 </main>
 
 <!-- <footer>
     <p>&copy; 2025 Watchnet. All rights reserved.</p>
 </footer> -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.querySelector(".product-form");
+
+    form.addEventListener("submit", function (event) {
+        let errors = [];
+
+        // Get form values
+        let name = document.getElementById("name").value.trim();
+        let brand = document.getElementById("brand").value.trim();
+        let price = document.getElementById("price").value;
+        let stock = document.getElementById("stock").value;
+        let rating = document.getElementById("average_rating").value;
+        let color = document.getElementById("color").value.trim();
+        let gender = document.getElementById("gender").value;
+        let description = document.getElementById("description").value.trim();
+
+        function validateForm() {
+    const price = document.getElementById('price').value;
+    const priceRegex = /^[0-9]+(\.[0-9]{1,2})?$/;  // Regex for valid decimal numbers
+
+    if (!priceRegex.test(price) || parseFloat(price) < 0 || parseFloat(price) > 100000) {
+        alert("Please enter a valid price within the allowed range (0 - 100000). Decimal values are allowed.");
+        return false;
+    }
+    return true;
+}
+
+        // Define Regex
+        let alphanumericRegex = /^[a-zA-Z0-9\s]+$/;
+        let alphaRegex = /^[a-zA-Z\s]+$/; // Added this line
+
+        // Product Name: Letters, numbers, spaces only
+        if (!alphanumericRegex.test(name)) {
+            errors.push("Product Name can only contain letters, numbers, and spaces.");
+        }
+
+        // Brand: Only letters and spaces
+        if (!alphaRegex.test(brand)) {
+            errors.push("Brand should contain only letters and spaces.");
+        }
+
+        // Price & Stock: Must be numeric
+        if (isNaN(price) || price <= 0) {
+            errors.push("Price must be a valid positive number.");
+        }
+        if (isNaN(stock) || stock < 0) {
+            errors.push("Stock must be a valid number (zero or more).");
+        }
+
+        // Rating: Should be between 1 and 5
+        if (isNaN(rating) || rating < 1 || rating > 5) {
+            errors.push("Average Rating must be between 1 and 5.");
+        }
+
+        // Color: Required
+        if (color === "") {
+            errors.push("Please enter the product color.");
+        }
+
+        // Gender: Required
+        if (gender === "") {
+            errors.push("Please select a gender.");
+        }
+
+        // Description: Must be at least 10 characters
+        if (description.length < 10) {
+            errors.push("Description must be at least 10 characters long.");
+        }
+
+        // Show errors
+        let errorContainer = document.getElementById("error-messages");
+        if (errors.length > 0) {
+            event.preventDefault(); // Prevent form submission
+            errorContainer.innerHTML = "<ul><li>" + errors.join("</li><li>") + "</li></ul>";
+            errorContainer.style.display = "block";
+        } else {
+            errorContainer.style.display = "none"; // Hide errors if no issues
+        }
+    });
+});
+</script>
 
 </body>
 </html>
