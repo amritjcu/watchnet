@@ -123,7 +123,7 @@
                     <a href="signup.php" class="signup nav-link text-white">Sign Up</a>
                     </li>
                     <li class="nav-item">
-                        <a href="cart.html" class="btn btn-outline-primary">Cart (0)</a>
+                        <a href="cart.php" class="btn btn-outline-primary">Cart (0)</a>
                     </li>
                 <?php endif; ?>
             </ul>
@@ -151,7 +151,7 @@
                 foreach ($carouselImages as $image):
             ?>
                 <!-- Slide -->
-                <div class="carousel-item                                          <?php echo $isFirst ? 'active' : ''; ?>">
+                <div class="carousel-item  <?php echo $isFirst ? 'active' : ''; ?>">
                     <img
                         src="<?php echo $image; ?>"
                         class="d-block w-100 hero-banner"

@@ -12,19 +12,37 @@ CREATE TABLE users (
 );
 
 -- Products Table (Watches)
-CREATE TABLE products (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    brand VARCHAR(100) NOT NULL,  -- Added brand filtering
-    description TEXT NOT NULL,
-    price DECIMAL(10,2) NOT NULL,
-    gender ENUM('Men', 'Women', 'Unisex') NOT NULL,  -- Added gender filtering
-    color VARCHAR(50) NOT NULL,  -- Added color filtering
-    average_rating DECIMAL(3,2) DEFAULT 0.0,  -- Average rating (updated dynamically)
-    image VARCHAR(255) NOT NULL,
-    stock INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+CREATE TABLE `products` (
+  `id` int NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `brand` varchar(100) NOT NULL,
+  `description` text NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `gender` varchar(10) DEFAULT NULL,
+  `color` varchar(50) NOT NULL,
+  `average_rating` decimal(3,2) DEFAULT '0.00',
+  `image` varchar(255) NOT NULL,
+  `stock` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `is_banner` enum('yes','no') NOT NULL DEFAULT 'no',
+  `is_new_arrival` enum('yes','no') NOT NULL DEFAULT 'no',
+  `is_featured` enum('yes','no') NOT NULL DEFAULT 'no'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- CREATE TABLE products (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     name VARCHAR(255) NOT NULL,
+--     brand VARCHAR(100) NOT NULL,  -- Added brand filtering
+--     description TEXT NOT NULL,
+--     price DECIMAL(10,2) NOT NULL,
+--     gender ENUM('Men', 'Women', 'Unisex') NOT NULL,  -- Added gender filtering
+--     color VARCHAR(50) NOT NULL,  -- Added color filtering
+--     average_rating DECIMAL(3,2) DEFAULT 0.0,  -- Average rating (updated dynamically)
+--     image VARCHAR(255) NOT NULL,
+--     stock INT NOT NULL,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- );
 
 -- Orders Table
 CREATE TABLE orders (
