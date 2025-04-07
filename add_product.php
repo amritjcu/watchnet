@@ -12,11 +12,10 @@
     }
 
     // Check if the user is logged in and is an admin
-    if (! isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin' || $_SESSION['role'] != 'superuser') {
-        // Redirect to the login page if the user is not an admin
-        header("Location: login.php");
-        exit();
-    }
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header("Location: login.php");
+    exit();
+}
 
     // Process the form submission when it is posted
     if ($_SERVER["REQUEST_METHOD"] == "POST") {

@@ -22,7 +22,9 @@ if (isset($_SESSION['user_id'])) {
     $first_name = '';
 }
 // Fetch featured products where is_featured = 'yes'
-$featureProductQuery  = "SELECT id, name, description, price, image FROM products ";
+$featureProductQuery = "SELECT id, name, description, price, image FROM products WHERE is_banner = 'no'";
+
+
 $featureProductResult = $conn->query($featureProductQuery);
 
 
@@ -32,7 +34,7 @@ $min_price = isset($_GET['min_price']) && !empty($_GET['min_price']) ? $_GET['mi
 $max_price = isset($_GET['max_price']) && !empty($_GET['max_price']) ? $_GET['max_price'] : PHP_INT_MAX;
 $sort = isset($_GET['sort']) ? $_GET['sort'] : 'name_asc'; // Default sort by name ascending
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1; // Get the current page or default to 1
-$limit = 12; // Number of products per page
+$limit = 6; // Number of products per page
 $offset = ($page - 1) * $limit; // Calculate offset for pagination
 
 // Build the base query
@@ -195,7 +197,7 @@ $total_pages = ceil($total_products / $limit);
                     <a href="signup.php" class="signup nav-link text-white">Sign Up</a>
                     </li>
                     <li class="nav-item">
-                        <a href="cart.html" class="btn btn-outline-primary">Cart (0)</a>
+                        <a href="cart.php" class="btn btn-outline-primary">Cart (0)</a>
                     </li>
                 <?php endif; ?>
             </ul>
@@ -243,10 +245,10 @@ $total_pages = ceil($total_products / $limit);
                     <img src="uploads/<?php echo htmlspecialchars($product['image']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($product['name']); ?>">
                     <div class="card-body">
                         <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
-                        <p class="card-text"><?php echo htmlspecialchars($product['description']); ?></p>
+                        <p class="card-text"><?php echo htmlspecialchars(implode(' ', array_slice(explode(' ', $product['description']), 0, 15))) . (str_word_count($product['description']) > 15 ? '...' : ''); ?></p>
                         <p class="card-text"><strong>$<?php echo number_format($product['price'], 2); ?></strong></p>
                         <a href="product_detail.php?id=<?php echo $product['id']; ?>" class="btn btn-primary">View Details</a>
-                        <form action="cart.html" method="POST" class="d-inline">
+                        <form action="cart.php" method="POST" class="d-inline">
                             <input type="hidden" name="product_id" value="1">
                             <button type="submit" class="btn btn-success">Add to Cart</button>
                         </form>

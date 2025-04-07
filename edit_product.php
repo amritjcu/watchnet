@@ -29,13 +29,14 @@ $product = $result->fetch_assoc();
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $name = $_POST['name'];
-    $brand = $_POST['brand'];
-    $description = $_POST['description'];
-    $price = $_POST['price'];
-    $color = $_POST['color'];
-    $average_rating = $_POST['average_rating'];
-    $stock = $_POST['stock'];
+    // Sanitize and escape inputs
+    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    $brand = mysqli_real_escape_string($conn, $_POST['brand']);
+    $description = mysqli_real_escape_string($conn, $_POST['description']);
+    $price = mysqli_real_escape_string($conn, $_POST['price']);
+    $color = mysqli_real_escape_string($conn, $_POST['color']);
+    $average_rating = mysqli_real_escape_string($conn, $_POST['average_rating']);
+    $stock = mysqli_real_escape_string($conn, $_POST['stock']);
 
     // Validate Gender Selection
     $allowed_genders = ['Male', 'Female', 'Unisex'];
@@ -55,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
+    // Prepare the update query
     $update_query = "UPDATE products SET 
         name='$name', 
         brand='$brand', 
@@ -67,6 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $update_image_sql 
         WHERE id='$product_id'";
 
+    // Execute the query
     if ($conn->query($update_query)) {
         header("Location: manage_products.php");
         exit();

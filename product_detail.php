@@ -31,7 +31,8 @@ if (isset($_GET['id'])) {
 }
 
 // Fetch featured products where is_featured = 'yes'
-$featureProductQuery  = "SELECT id, name, description, price, image FROM products LIMIT 3";
+$featureProductQuery  = "SELECT id, name, description, price, image FROM products WHERE is_banner = 'no' LIMIT 3";
+
 $featureProductResult = $conn->query($featureProductQuery);
 ?>
 
@@ -132,7 +133,7 @@ $featureProductResult = $conn->query($featureProductQuery);
                     <a href="signup.php" class="signup nav-link text-white">Sign Up</a>
                     </li>
                     <li class="nav-item">
-                        <a href="cart.html" class="btn btn-outline-primary">Cart (0)</a>
+                        <a href="cart.php" class="btn btn-outline-primary">Cart (0)</a>
                     </li>
                 <?php endif; ?>
             </ul>
@@ -156,7 +157,7 @@ $featureProductResult = $conn->query($featureProductQuery);
           <p><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
 
                 <!-- Add to Cart Button -->
-                <form method="POST" action="cart.html">
+                <form method="POST" action="cart.php">
                     <input type="hidden" name="product_id" value="1">
                     <div class="mb-3">
                         <label for="quantity" class="form-label">Quantity:</label>
@@ -166,7 +167,7 @@ $featureProductResult = $conn->query($featureProductQuery);
                     <!-- <button type="submit" class="btn btn-success">Add to Cart</button> -->
                 </form>
 
-                <a href="products.html" class="btn btn-secondary mt-3">Back to Products</a>
+                <a href="product.php" class="btn btn-secondary mt-3">Back to Products</a>
                 <div class="icon-box">
                     <div class="left">
                         <i class="fa-solid fa-cart-shopping"></i>
@@ -188,10 +189,10 @@ $featureProductResult = $conn->query($featureProductQuery);
                     <img src="uploads/<?php echo htmlspecialchars($product['image']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($product['name']); ?>">
                         <div class="card-body">
                         <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
-                        <p class="card-text"><?php echo htmlspecialchars($product['description']); ?></p>
+                        <p class="card-text"><?php echo htmlspecialchars(implode(' ', array_slice(explode(' ', $product['description']), 0, 15))) . (str_word_count($product['description']) > 15 ? '...' : ''); ?></p>
                         <p class="card-text"><strong>$<?php echo number_format($product['price'], 2); ?></strong></p>
                         <a href="product_detail.php?id=<?php echo $product['id']; ?>" class="btn btn-primary">View Details</a>
-                            <a href="cart.html" class="btn btn-success">Add to Cart</a>
+                            <a href="cart.php" class="btn btn-success">Add to Cart</a>
                         </div>
                     </div>
                 </div>

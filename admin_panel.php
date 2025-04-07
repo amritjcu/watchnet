@@ -193,14 +193,14 @@ footer {
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
-            <h2>Admin Panel</h2>
+            <h2>&nbsp;&nbsp;Admin Panel</h2>
         </div>
         <nav class="sidebar-nav">
             <ul>
                 <li><a href="admin_panel.php">Dashboard</a></li>
                 <li><a href="manage_products.php">Manage Products</a></li>
                 <li><a href="manage_users.php">Manage Users</a></li>
-                <li><a href="manage_orders.php">Manage Orders</a></li>
+                <!-- <li><a href="manage_orders.php">Manage Orders</a></li> -->
                 <li><a href="add_product.php">Add Product</a></li>
                 <li><a href="logout.php" class="logout">Logout</a></li>
             </ul>
@@ -211,13 +211,13 @@ footer {
     <main class="main-content">
         <header class="admin-header">
             <div class="header-content">
-                <span>Welcome, Admin</span>
+                <span>&nbsp;&nbsp;&nbsp; Welcome, Admin</span>
             </div>
         </header>
 
         <!-- Dashboard Content -->
         <div class="dashboard">
-            <h2>Admin Dashboard</h2>
+            <h2>&nbsp;&nbsp; Admin Dashboard</h2>
             <div class="dashboard-cards">
                 <div class="card">
                     <h3>Total Products</h3>
